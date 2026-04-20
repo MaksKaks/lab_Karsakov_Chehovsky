@@ -80,14 +80,6 @@ public:
         return nullptr;
     }
     
-    const TValue* Find(const TKey& key) const override {
-        int result = BinarySearchWithPos(key);
-        if (result >= 0) {
-            return &data[result].value;
-        }
-        return nullptr;
-    }
-
     void Insert(const TKey& key, const TValue& value) override {
     int result = BinarySearchWithPos(key);
     

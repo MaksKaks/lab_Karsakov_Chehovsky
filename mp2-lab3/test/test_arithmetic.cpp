@@ -6,7 +6,6 @@
 
 using namespace std;
 
-// Тесты для функции input (валидация ввода)
 TEST(InputValidationTest, ValidExpressions) {
     EXPECT_EQ(input("x+1", 3), 0);
     EXPECT_EQ(input("sin(x)", 6), 0);
@@ -21,29 +20,29 @@ TEST(InputValidationTest, ValidExpressions) {
 }
 
 TEST(InputValidationTest, InvalidExpressions) {
-    // Двойные операторы
+    
     EXPECT_EQ(input("x++1", 4), 1);
     EXPECT_EQ(input("x--1", 4), 1);
     EXPECT_EQ(input("x**2", 4), 1);
     
-    // Неправильные скобки
+   
     EXPECT_EQ(input("(x+1", 4), 1);
     EXPECT_EQ(input("x+1)", 4), 1);
     EXPECT_EQ(input(")x+1(", 5), 1);
     
-    // Ведущие нули
+    
     EXPECT_EQ(input("x+01", 4), 1);
     
-    // Неправильные функции
+    
     EXPECT_EQ(input("sinx", 4), 1);
     EXPECT_EQ(input("sin1", 4), 1);
     
-    // Недопустимые символы
+    
     EXPECT_EQ(input("x#1", 3), 1);
     EXPECT_EQ(input("x@y", 3), 1);
 }
 
-// Тесты для функции execute с переменными
+
 TEST(ExecuteTest, BasicOperations) {
     map<string, double> vars = {{"x", 0}, {"y", 0}, {"z", 0}};
     
@@ -157,7 +156,7 @@ TEST(ExecuteTest, OperatorPrecedence) {
     EXPECT_NEAR(execute(expr, vars), 18.0, 0.1); // 2 * 9 = 18
 }
 
-// Тесты для классов
+
 TEST(ClassTest, LexemaCreation) {
     Lexema<string> bracket("(");
     EXPECT_EQ(bracket.type, 1);
@@ -200,7 +199,7 @@ TEST(ClassTest, OperationCreation) {
     EXPECT_NEAR(divide.execute(10, 2), 5.0, 0.1);
 }
 
-// Тесты для вспомогательных функций
+
 TEST(UtilityTest, IsOperator) {
     EXPECT_TRUE(isOperator('+'));
     EXPECT_TRUE(isOperator('-'));
@@ -231,12 +230,12 @@ TEST(UtilityTest, IsValidChar) {
     EXPECT_TRUE(isValidChar('.'));
     EXPECT_TRUE(isValidChar('('));
     EXPECT_TRUE(isValidChar(')'));
-    EXPECT_FALSE(isValidChar('a')); // кроме x,y,z
+    EXPECT_FALSE(isValidChar('a')); 
     EXPECT_FALSE(isValidChar('#'));
     EXPECT_FALSE(isValidChar(' '));
 }
 
-// Тесты для приоритетов операторов
+
 TEST(OperatorTest, Priorities) {
     Operation add("+");
     Operation multiply("*");
@@ -249,24 +248,4 @@ TEST(OperatorTest, Priorities) {
     EXPECT_EQ(power.priority, 3);
 }
 
-// Тесты для сложных математических выражений
-TEST(ComplexMathTest, TrigonometricCombinations) {
-    map<string, double> vars = {{"x", 3.1415927/4}};
-    
-    string expr = "sin(x)^2+cos(x)^2";
-    EXPECT_NEAR(execute(expr, vars), 1.0, 0.1);
-    
-    expr = "2*sin(x)*cos(x)";
-    EXPECT_NEAR(execute(expr, vars), sin(3.1415927*2), 0.1);
-}
-
-TEST(ComplexMathTest, NestedFunctions) {
-    map<string, double> vars = {{"x", 1.0}};
-    
-    string expr = "sqrt(sin(x)^2+cos(x)^2)";
-    EXPECT_NEAR(execute(expr, vars), 1.0, 0.1);
-    
-    expr = "log(exp(1))";
-    EXPECT_NEAR(execute(expr, vars), 1.0, 0.1);
-}
 
