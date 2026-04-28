@@ -23,7 +23,7 @@ public:
     virtual TValue* Find(const TKey& key) = 0;
     virtual void Insert(const TKey& key, const TValue& value) = 0;
     virtual void Delete(const TKey& key) = 0;
-    virtual int count() const = 0;
+    virtual int Count() const = 0;
     virtual bool isempty() const { return Count() == 0; }
     virtual TValue& operator[](const TKey& key) = 0;
     virtual vector<TKey> keys() const = 0;
@@ -90,13 +90,11 @@ public:
     void Print() const {
         if (data.empty()) {
         cout << "{}" << endl; return;}
-        cout << "{" << endl;
         for (size_t i = 0; i < data.size(); i++) {
             cout << "  " << data[i].key <<" : "<< data[i].value;
             if (i != data.size() - 1) {
                 cout<<",";}
-            cout << endl;}
-        cout << "}" << endl;}
+            cout << endl;}}
 };
 
 
@@ -121,14 +119,14 @@ void Insert(const TKey& key, const TValue& value) override {
     
 void Delete(const TKey& key) override {
         if (list.isEmpty()) {
-            throw invalid_argument("Key not found");}
+            throw invalid_argument("Key not");}
         if (list.GetFirst()->val == key) {  
             list.PopFront(); return;}
         for (int i = 1; i < list.size(); i++) {
             if (list[i] == key) { 
                 list.EraseAfter(i - 1);
                 return;}}
-        throw invalid_argument("Key not found");}
+        throw invalid_argument("Key not");}
     int Count() const override { return list.size();}
     TValue& operator[](const TKey& key) override {
         TValue* val = Find(key);
@@ -155,13 +153,11 @@ void Delete(const TKey& key) override {
         if (list.isEmpty()) {
             cout << "{}" << endl;
             return;}
-        cout << "{" << endl;
         for (int i = 0; i < list.size(); i++) {
             cout << "  " << list[i].key << " : " << list[i].value;
             if (i != list.size() - 1) {
                 cout << ",";}
-            cout << endl;}
-        cout << "}" << endl;}
+            cout << endl;};}
 };
 
 #endif
