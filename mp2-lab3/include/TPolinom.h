@@ -1,6 +1,7 @@
 #include "TLists.h"
 #include "TMonom.h"
 #include <iostream>
+#include <cmath>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -237,7 +238,7 @@ public:
 
   double Calculate_At(const double &_x, const double &_y, const double &_z) {
     TPolinom tmp(*this);
-    // tmp.sort();
+    
     typename TSinglyList<TMonom>::TNode *Node_1 = tmp.list.GetFirst();
     bool flag_is_calculate_over = false;
     double result = 0;

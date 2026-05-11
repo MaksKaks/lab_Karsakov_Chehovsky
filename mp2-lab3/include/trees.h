@@ -1,113 +1,160 @@
 #ifndef __TREES_H__
 #define __TREES_H__
-#include <algorithm>
-#include <vector>
-#include <stdexcept>
-#include <iostream>
+
 #include "map.h"
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
 using namespace std;
 
 template <typename TKey, typename TValue>
 class Binarytree : public Map<TKey, TValue> {
 private:
-    using typename Map<TKey, TValue>::Pair;
+    using Pair = typename Map<TKey, TValue>::Pair;
+
     struct Node {
         Pair data;
         Node* left;
         Node* right;
-        Node(const TKey& key, const TValue& value) : data(key, value), left(nullptr), right(nullptr) {}};
+        Node(const TKey& k, const TValue& v) : data(k, v), left(nullptr), right(nullptr) {}
+    };
+
     Node* root;
     int treeSize;
 
-    Node* insertnode(Node* node, const TKey& key, const TValue& value) {
-        if (node == nullptr) { return new Node(key, value); }
-        if (key < node->data.key) { node->left = insertnode(node->left, key, value); }
-        else if (key > node->data.key) { node->right = insertnode(node->right, key, value); }
-        else { node->data.value = value; }
-        return node;}
-    Node* findnode(Node* node, const TKey& key) const {
-        if (node == nullptr || node->data.key == key) { return node; }
-        if (key < node->data.key) { return findnode(node->left, key); }
-        else { return findnode(node->right, key);}}
+    Node* insertNode(Node* node, const TKey& key, const TValue& value) {
+        if (node == nullptr) return new Node(key, value);
+        if (key < node->data.key) node->left = insertNode(node->left, key, value);
+        else if (key > node->data.key) node->right = insertNode(node->right, key, value);
+        else node->data.value = value;
+        return node;
+    }
 
-    Node* removenode(Node* node, const TKey& key) {
+    Node* findNode(Node* node, const TKey& key) const {
         if (node == nullptr) return nullptr;
-        if (key < node->data.key) { node->left = removenode(node->left, key); }
-        else if (key > node->data.key) { node->right = removenode(node->right, key); }
-        else {
-            if (node->left == nullptr) { Node* temp = node->right; delete node; return temp; }
-            else if (node->right == nullptr) { Node* temp = node->left; delete node; return temp; }
-            Node* minNode = findmin(node->right);
+        if (node->data.key == key) return node;
+        if (key < node->data.key) return findNode(node->left, key);
+        return findNode(node->right, key);
+    }
+
+    Node* findMin(Node* node) const {
+        while (node && node->left) node = node->left;
+        return node;
+    }
+
+    Node* removeNode(Node* node, const TKey& key) {
+        if (node == nullptr) return nullptr;
+        if (key < node->data.key) {
+            node->left = removeNode(node->left, key);
+        } else if (key > node->data.key) {
+            node->right = removeNode(node->right, key);
+        } else {
+            if (node->left == nullptr) {
+                Node* rightSubtree = node->right;
+                delete node;
+                return rightSubtree;
+            }
+            if (node->right == nullptr) {
+                Node* leftSubtree = node->left;
+                delete node;
+                return leftSubtree;
+            }
+            Node* minNode = findMin(node->right);
             node->data = minNode->data;
-            node->right = removenode(node->right, minNode->data.key);}
-        return node;}
+            node->right = removeNode(node->right, minNode->data.key);
+        }
+        return node;
+    }
 
-    Node* findmin(Node* node) const {
-        while (node && node->left != nullptr) { node = node->left; }
-        return node;}
+    void collectKeys(Node* node, vector<TKey>& out)  const {
+        if (node == nullptr) return;
+        collectKeys(node->left, out);
+        out.push_back(node->data.key);
+        collectKeys(node->right, out);
+    }
 
-    void allkeys(Node* node, vector<TKey>& keys) const {
-        if (node != nullptr) {
-            allkeys(node->left, keys);
-            keys.push_back(node->data.key);
-            allkeys(node->right, keys);}}
-    void allval(Node* node, vector<TValue>& values) const {
-        if (node != nullptr) {
-            allval(node->left, values);
-            values.push_back(node->data.value);
-            allval(node->right, values);}}
-    void clearrec(Node* node) {
-        if (node != nullptr) {
-            clearrec(node->left);
-            clearrec(node->right);
-            delete node;}}
-    public:
+    void collectValues(Node* node, vector<TValue>& out) const {
+        if (node == nullptr) return;
+        collectValues(node->left, out);
+        out.push_back(node->data.value);
+        collectValues(node->right, out);
+    }
+
+    void clearTree(Node* node) {
+        if (node == nullptr) return;
+        clearTree(node->left);
+        clearTree(node->right);
+        delete node;
+    }
+
+public:
     Binarytree() : root(nullptr), treeSize(0) {}
-    ~Binarytree() override { clear(); }
+    ~Binarytree() override { Clear(); }
 
     TValue* Find(const TKey& key) override {
-        Node* node = findnode(root, key);
-        if (node != nullptr) { return &node->data.value; }
-        else { return nullptr; }}
+    Node* node = findNode(root, key);
+    if (node != nullptr) {
+        return &node->data.value;
+    } else {
+        return nullptr;
+    }
+}
 
     void Insert(const TKey& key, const TValue& value) override {
-        bool isNewKey = (Find(key) == nullptr);
-        root = insertnode(root, key, value);
-        if (isNewKey) treeSize++;}
+        bool isNew = (Find(key) == nullptr);
+        root = insertNode(root, key, value);
+        if (isNew) ++treeSize;
+    }
 
     void Delete(const TKey& key) override {
-        bool keyExisted = (Find(key) != nullptr);
-        root = removenode(root, key);
-        if (keyExisted) treeSize--;}
-    int count() const override { return treeSize; }
+        bool exists = (Find(key) != nullptr);
+        root = removeNode(root, key);
+        if (exists) --treeSize;
+    }
+
+    int Count() const override {
+        return treeSize;
+    }
 
     TValue& operator[](const TKey& key) override {
         TValue* existing = Find(key);
-        if (existing != nullptr) { return *existing; }
+        if (existing) return *existing;
         Insert(key, TValue());
-        return *Find(key);}
-    vector<TKey> keys() const override {
-        vector<TKey> result;
-        allkeys(root, result);
-        return result;}
+        return *Find(key);
+    }
 
-    vector<TValue> values() const override {
-        vector<TValue> result;
-        allval(root, result);
-        return result;}
+    vector<TKey> keys()  override {
+        vector<TKey> out;
+        collectKeys(root, out);
+        return out;
+    }
 
-    void clear() override {
-        clearrec(root);
-        root = nullptr;
-        treeSize = 0;}
-    void Print() const override {
-        auto allKeys = keys();
-        auto allValues = values();
-        if (allKeys.empty()) { cout << "{}" << endl; return; }
+    vector<TValue> values() override {
+        vector<TValue> out;
+        collectValues(root, out);
+        return out;
+    }
+
+    void Print() override {
+        vector<TKey> allKeys = keys();
+        vector<TValue> allValues = values();
+        if (allKeys.empty()) {
+            cout << "{}" << endl;
+            return;
+        }
         for (size_t i = 0; i < allKeys.size(); i++) {
             cout << " " << allKeys[i] << " : " << allValues[i];
-            if (i != allKeys.size() - 1) { cout << ","; }
-            cout << endl;}
+            if (i + 1 != allKeys.size()) cout << ",";
+            cout << endl;
         }
+    }
+
+    void Clear() override {
+        clearTree(root);
+        root = nullptr;
+        treeSize = 0;
+    }
 };
+
 #endif

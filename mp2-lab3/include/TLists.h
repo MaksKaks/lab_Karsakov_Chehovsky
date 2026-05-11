@@ -1,179 +1,154 @@
-#include <cmath>
+#ifndef __TLISTS_H__
+#define __TLISTS_H__
+
+#include <algorithm>
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 
 using namespace std;
-#ifndef _TSINGLYLIST_H_
-#define _TSINGLYLIST_H_
 
-template <typename T> class TSinglyList {
+template <typename T>
+class TSinglyList {
 public:
-  struct TNode {
-    T val;
-    TNode *pNext;
-    TNode(T v, TNode *p = nullptr) : val(v), pNext(p){};
-  };
+    struct TNode {
+        T val;
+        TNode* pNext;
+        TNode(T v, TNode* p = nullptr) : val(v), pNext(p) {}
+    };
 
 private:
-  TNode *pFirst;
-  size_t sz;
+    TNode* pFirst;
+    size_t sz;
 
 public:
-  friend class TPolinom;
-  TSinglyList() : pFirst(nullptr), sz(0) {}
+    TSinglyList() : pFirst(nullptr), sz(0) {}
 
-  TSinglyList(const vector<T> &v) {
-    if (v.size() != 0) {
-      pFirst = new TNode(v[0]);
-      sz = 1;
-      TNode *current = pFirst;
-      for (size_t i = 0; i < v.size(); i++) {
-        current->pNext = new TNode(v[i]);
-        current = current->pNext;
-        sz++;
-      }
-    } else {
-      throw invalid_argument("Vector size must be > 0");
-    }
-  }
-
-  TSinglyList(const TSinglyList &list) : pFirst(nullptr), sz(0) {
-    if (!list.pFirst)
-      throw invalid_argument("Incorrect list");
-
-    pFirst = new TNode(list.pFirst->val);
-    sz++;
-    TNode *current = pFirst;
-    TNode *current2 = list.pFirst->pNext;
-
-    while (current2 != nullptr) {
-      current->pNext = new TNode(current2->val);
-      current = current->pNext;
-      current2 = current2->pNext;
-      sz++;
-    }
-  }
-
-  bool operator==(const TSinglyList &list) {
-    if (sz != list.sz) {
-      return false;
-    } else {
-      TNode *tmp1 = pFirst;
-      TNode *tmp2 = list.GetFirst();
-      while (tmp1 != nullptr && tmp2 != nullptr && tmp1->pNext != nullptr &&
-             tmp2->pNext != nullptr) {
-        if (tmp1->val != tmp2->val) {
-          return false;
+    TSinglyList(const vector<T>& v) : pFirst(nullptr), sz(0) {
+        if (v.empty()) throw invalid_argument("Vector size must be > 0");
+        pFirst = new TNode(v[0]);
+        sz = 1;
+        TNode* current = pFirst;
+        for (size_t i = 1; i < v.size(); ++i) {
+            current->pNext = new TNode(v[i]);
+            current = current->pNext;
+            ++sz;
         }
-        tmp1 = tmp1->pNext;
-        tmp2 = tmp2->pNext;
-      }
-    }
-    return true;
-  }
-
-  TSinglyList(TSinglyList &&list) noexcept {
-    swap(pFirst, list.pFirst);
-    sz = list.sz;
-  }
-
-  TSinglyList &operator=(const TSinglyList &list) {
-    if (this == &list) {
-      return *this;
-    }
-    pFirst = new TNode(list.pFirst->val);
-    sz++;
-    TNode *current = pFirst;
-    TNode *current2 = list.pFirst->pNext;
-
-    while (current2 != nullptr) {
-      current->pNext = new TNode(current2->val);
-      current = current->pNext;
-      current2 = current2->pNext;
-      sz++;
     }
 
-    return *this;
-  }
+    TSinglyList(const TSinglyList& list) : pFirst(nullptr), sz(0) {
+        if (!list.pFirst) return;
+        pFirst = new TNode(list.pFirst->val);
+        sz = 1;
+        TNode* cur1 = pFirst;
+        TNode* cur2 = list.pFirst->pNext;
+        while (cur2) {
+            cur1->pNext = new TNode(cur2->val);
+            cur1 = cur1->pNext;
+            cur2 = cur2->pNext;
+            ++sz;
+        }
+    }
 
-  TSinglyList &operator=(TSinglyList &&list) {
-    swap(pFirst, list.pFirst);
-    sz = list.sz;
-    return *this;
-  }
+    TSinglyList& operator=(const TSinglyList& list) {
+        if (this == &list) return *this;
+        Clear();
+        if (!list.pFirst) return *this;
+        pFirst = new TNode(list.pFirst->val);
+        sz = 1;
+        TNode* cur1 = pFirst;
+        TNode* cur2 = list.pFirst->pNext;
+        while (cur2) {
+            cur1->pNext = new TNode(cur2->val);
+            cur1 = cur1->pNext;
+            cur2 = cur2->pNext;
+            ++sz;
+        }
+        return *this;
+    }
 
-  size_t size() const noexcept { return sz; }
-  bool isEmpty() const noexcept { return (sz == 0); }
-  T &Front() noexcept { return *pFirst->val; }
-  void PushFront(const T &val) {
-    TNode *t = new TNode(val, nullptr);
-    t->pNext = pFirst;
-    pFirst = t;
-  }
-  void PopFront() noexcept {
-    TNode *t = pFirst;
-    pFirst = pFirst->pNext;
-    delete t;
-  }
-  void PushBack(const T &val) {
-    TNode *newNode = new TNode(val, nullptr);
+    ~TSinglyList() { Clear(); }
 
-    if (!pFirst) {
-      pFirst = newNode;
-    } else {
-      TNode *current = pFirst;
-      while (current->pNext) {
-        current = current->pNext;
-      }
-      current->pNext = newNode;
+    bool operator==(const TSinglyList& list) const {
+        if (sz != list.sz) return false;
+        TNode* t1 = pFirst;
+        TNode* t2 = list.pFirst;
+        while (t1 && t2) {
+            if (!(t1->val == t2->val)) return false;
+            t1 = t1->pNext;
+            t2 = t2->pNext;
+        }
+        return true;
     }
-    sz++;
-  }
-  T &operator[](size_t pos) {
-    TNode *tmp = pFirst;
-    for (size_t i = 0; i < pos; i++) {
-      tmp = tmp->pNext;
-    }
-    return tmp->val;
-  }
-  void PushAfter(size_t pos, const T &val) {
-    if (pos <= 0 || pos > sz) {
-      throw invalid_argument("Incorrect position");
-    }
-    TNode *tmp = pFirst;
-    for (size_t i = 0; i < pos; i++) {
-      tmp = tmp->pNext;
-    }
-    TNode *t = new TNode(val, tmp->pNext);
-    tmp->pNext = t;
-  }
-  void EraseAfter(size_t pos) {
-    if (pos <= 0 || pos > sz) {
-      throw invalid_argument("Incorrect position");
-    }
-    TNode *tmp = pFirst;
-    for (size_t i = 0; i < pos; i++) {
-      tmp = tmp->pNext;
-    }
-    TNode *t = tmp->pNext;
-    tmp->pNext = tmp->pNext->pNext;
-    delete t;
-  }
 
-  ~TSinglyList() {
-    while (pFirst) {
-      PopFront();
+    size_t size() const noexcept { return sz; }
+    bool isEmpty() const noexcept { return sz == 0; }
+    T& Front() {
+        if (!pFirst) throw runtime_error("List is empty");
+        return pFirst->val;
     }
-  }
 
-  TNode *GetFirst() const { return pFirst; }
-  TNode *GetLast() const {
-    TNode *tmp = pFirst;
-    for (size_t i = 0; i < sz; i++) {
-      tmp = tmp->pNext;
+    void PushFront(const T& val) {
+        pFirst = new TNode(val, pFirst);
+        ++sz;
     }
-    return tmp;
-  }
+
+    void PopFront() {
+        if (!pFirst) throw runtime_error("List is empty");
+        TNode* tmp = pFirst;
+        pFirst = pFirst->pNext;
+        delete tmp;
+        --sz;
+    }
+
+    void PushBack(const T& val) {
+        if (!pFirst) {
+            PushFront(val);
+            return;
+        }
+        TNode* cur = pFirst;
+        while (cur->pNext) cur = cur->pNext;
+        cur->pNext = new TNode(val);
+        ++sz;
+    }
+
+    T& operator[](size_t pos) {
+        if (pos >= sz) throw out_of_range("Index out of bounds");
+        TNode* cur = pFirst;
+        for (size_t i = 0; i < pos; ++i) cur = cur->pNext;
+        return cur->val;
+    }
+
+    void PushAfter(size_t pos, const T& val) {
+        if (pos >= sz) throw invalid_argument("Incorrect position");
+        TNode* cur = pFirst;
+        for (size_t i = 0; i < pos; ++i) cur = cur->pNext;
+        cur->pNext = new TNode(val, cur->pNext);
+        ++sz;
+    }
+
+    void EraseAfter(size_t pos) {
+        if (pos >= sz - 1) throw invalid_argument("Incorrect position");
+        TNode* cur = pFirst;
+        for (size_t i = 0; i < pos; ++i) cur = cur->pNext;
+        TNode* toDelete = cur->pNext;
+        cur->pNext = toDelete->pNext;
+        delete toDelete;
+        --sz;
+    }
+
+    void Clear() {
+        while (pFirst) PopFront();
+        sz = 0;
+    }
+
+    TNode* GetFirst() const { return pFirst; }
+    TNode* GetLast() const {
+        if (!pFirst) return nullptr;
+        TNode* cur = pFirst;
+        while (cur->pNext) cur = cur->pNext;
+        return cur;
+    }
 };
 
 #endif

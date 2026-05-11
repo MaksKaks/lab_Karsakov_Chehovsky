@@ -2,8 +2,6 @@
 #define __MAP_H__
 
 #include <vector>
-#include <stdexcept>
-#include "TLists.h"
 
 using namespace std;
 
@@ -13,22 +11,28 @@ public:
     struct Pair {
         TKey key;
         TValue value;
-        Pair() = default;  
+        Pair() = default;
         Pair(const TKey& k, const TValue& v) : key(k), value(v) {}
+
         bool operator<(const Pair& other) const { return key < other.key; }
         bool operator>(const Pair& other) const { return key > other.key; }
         bool operator==(const Pair& other) const { return key == other.key; }
-        bool operator==(const TKey& otherKey) const { return key == otherKey; }};
+        bool operator==(const TKey& otherKey) const { return key == otherKey; }
+    };
+
     virtual ~Map() = default;
+
     virtual TValue* Find(const TKey& key) = 0;
     virtual void Insert(const TKey& key, const TValue& value) = 0;
     virtual void Delete(const TKey& key) = 0;
     virtual int Count() const = 0;
     virtual bool isempty() const { return Count() == 0; }
     virtual TValue& operator[](const TKey& key) = 0;
-    virtual vector<TKey> keys() const = 0;
-    virtual vector<TValue> values() const = 0;
-    };
+    virtual vector<TKey> keys()  = 0;
+    virtual vector<TValue> values()  = 0;
+    virtual void Clear() = 0;
+    virtual void Print() = 0;
+};
 
 template <typename TKey, typename TValue>
 class Orderedmap : public Map<TKey, TValue> {
@@ -56,11 +60,12 @@ public:
             return &data[result].value;} return nullptr;}
     
     void Insert(const TKey& key, const TValue& value) override {
-    int result = Binsearch(key);
-    if (result >= 0) {
-        data[result].value = value; return;}
-    size_t insertPos = -result - 1;  
-    data.insert(data.begin() + insertPos, Pair(key, value));}
+        int result = Binsearch(key);
+        if (result >= 0) {
+            data[result].value = value; return;}
+        size_t insertPos = -result - 1;  
+        data.insert(data.begin() + insertPos, Pair(key, value));
+    }
     
     void Delete(const TKey& key) override {
         int result = Binsearch(key);

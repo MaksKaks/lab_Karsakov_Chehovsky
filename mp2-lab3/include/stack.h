@@ -1,75 +1,50 @@
+#ifndef __STACK_H__
+#define __STACK_H__
+
+
+
 #include <algorithm>
-#include <iostream>
-#include <vector>
+#include <stdexcept>
 using namespace std;
-
-#ifndef __TStack_H__
-#define __TStack_H__
-
-template <typename T> class TStack {
-protected:
-  int size;
-  T *mem;
-  int top;
+template <typename T>
+class TStack {
+private:
+    int capacity;
+    int topIdx;
+    T* mem;
 
 public:
-  TStack(int size = 10) {
-    top = -1;
-    this->size = size;
-    mem = new T[this->size];
-  }
-  ~TStack() { delete[] mem; }
-  void push(const T &val) {
-    if (top < size - 1) {
-      mem[top + 1] = val;
-      top++;
-    } else {
-      T *tmp = new T[size * 2];
-      int oldCount = top + 1;
-      size *= 2;
-      copy(mem, mem + oldCount, tmp);
-      swap(mem, tmp);
-      delete[] tmp;
-      mem[top + 1] = val;
-      top++;
+    TStack(int size = 10) : capacity(size), topIdx(-1) {
+        mem = new T[capacity];
     }
-  }
-  T pop() {
-    if (top >= 0) {
-      T val = mem[top];
-      top--;
-      return val;
-    } else {
-      throw invalid_argument("Stack now is empty");
-    }
-  }
-  bool isEmpty() { return top == -1; }
 
-  T Top() {
-    if (top == -1) {
-      throw invalid_argument("Stack now is empty");
-    } else {
-      return mem[top];
-    }
-  }
+    ~TStack() { delete[] mem; }
 
-  TStack<T> reverse() {
-    TStack<T> rev;
-    int count = top + 1;
-    T *tmp = new T[count];
-    for (int i = 0; i < count; i++) {
-      tmp[count - 1 - i] = mem[i];
+    void push(const T& val) {
+        if (topIdx + 1 >= capacity) {
+            int newCap = capacity * 2;
+            T* newMem = new T[newCap];
+            for (int i = 0; i <= topIdx; ++i) newMem[i] = mem[i];
+            delete[] mem;
+            mem = newMem;
+            capacity = newCap;
+        }
+        mem[++topIdx] = val;
     }
-    for (int i = 0; i < count; i++) {
-      rev.push(tmp[i]);
+
+    T pop() {
+        if (topIdx < 0) throw invalid_argument("Stack is empty");
+        return mem[topIdx--];
     }
-    delete[] tmp;
-    return rev;
-  }
 
-  int get_size() { return (size); }
+    bool isEmpty() const { return topIdx == -1; }
 
-  int get_count() { return top + 1; }
+    T& Top() {
+        if (topIdx < 0) throw invalid_argument("Stack is empty");
+        return mem[topIdx];
+    }
+
+    int get_count() const { return topIdx + 1; }
 };
 
 #endif
