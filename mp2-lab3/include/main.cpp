@@ -17,18 +17,16 @@ int main() {
     vector<string> keys = tree.keys();
 
 
-        string expr = "x*y+z+z";
-        Binarytree<string, TPolinom> variables;
+        string vurazhenie = "x*y+z+z";
+        Binarytree<string, TPolinom> peremen;
 
-        variables.Insert("x", TPolinom("1x1y1z0"));
-        variables.Insert("y", TPolinom("3x0y0z0"));
-        variables.Insert("z", TPolinom("9x2y1z0+2x1y1z0"));
-
-        TPolinom result = execute(expr, variables);
-
-        cout << "Expression: " << expr << endl;
-        cout << "Result polynomial: " << result << endl;
-        cout << "Value at x=1, y=2, z=3: " << result.Calculate_At(1, 2, 3) << endl;
+        peremen.Insert("x", TPolinom("1x1y1z0"));
+        peremen.Insert("y", TPolinom("3x0y0z0"));
+        peremen.Insert("z", TPolinom("9x2y1z0+2x1y1z0"));
+        TPolinom resul = execute(vurazhenie, peremen);
+        cout << "vurazhenieession: " << vurazhenie << endl;
+        cout << "Res" << resul << endl;
+        cout << "V tochke x=1, y=2, z=3: " << resul.Calculate_At(1, 2, 3) << endl;
     
 
     return 0;
