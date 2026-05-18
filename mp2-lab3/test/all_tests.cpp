@@ -9,7 +9,6 @@ using namespace std;
 //ORDEREDMAP
 
 TEST(OrderedMap, can_insert_and_find_element)
-// Проверяет вставку и поиск элемента
 {
     Orderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -20,7 +19,6 @@ TEST(OrderedMap, can_insert_and_find_element)
 }
 
 TEST(OrderedMap, find_returns_nullptr_for_nonexistent_key)
-// Проверяет поиск несуществующего ключа
 {
     Orderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -30,7 +28,6 @@ TEST(OrderedMap, find_returns_nullptr_for_nonexistent_key)
 }
 
 TEST(OrderedMap, can_update_existing_key)
-// Проверяет обновление значения по существующему ключу
 {
     Orderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -42,7 +39,6 @@ TEST(OrderedMap, can_update_existing_key)
 }
 
 TEST(OrderedMap, can_delete_existing_key)
-// Проверяет удаление элемента
 {
     Orderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -55,7 +51,6 @@ TEST(OrderedMap, can_delete_existing_key)
 }
 
 TEST(OrderedMap, delete_nonexistent_key_throws_exception)
-// Проверяет, что при удалении несуществующего ключа выбрасывается исключение
 {
     Orderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -64,7 +59,6 @@ TEST(OrderedMap, delete_nonexistent_key_throws_exception)
 }
 
 TEST(OrderedMap, operator_brackets_creates_new_element)
-// Проверяет, что оператор [] создаёт новый элемент
 {
     Orderedmap<string, int> map;
     map["newkey"] = 42;
@@ -75,7 +69,6 @@ TEST(OrderedMap, operator_brackets_creates_new_element)
 }
 
 TEST(OrderedMap, can_get_size)
-// Проверяет корректность подсчёта количества элементов
 {
     Orderedmap<string, int> map;
     EXPECT_EQ(0, map.Count());
@@ -89,7 +82,6 @@ TEST(OrderedMap, can_get_size)
 }
 
 TEST(OrderedMap, can_clear_map)
-// Проверяет очистку
 {
     Orderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -104,7 +96,6 @@ TEST(OrderedMap, can_clear_map)
 //UNORDEREDMAP
 
 TEST(UnorderedMap, can_insert_and_find_element)
-// Проверяет вставку и поиск элемента
 {
     Unorderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -115,7 +106,6 @@ TEST(UnorderedMap, can_insert_and_find_element)
 }
 
 TEST(UnorderedMap, find_returns_nullptr_for_nonexistent_key)
-// Проверяет поиск несуществующего ключа
 {
     Unorderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -125,7 +115,6 @@ TEST(UnorderedMap, find_returns_nullptr_for_nonexistent_key)
 }
 
 TEST(UnorderedMap, can_update_existing_key)
-// Проверяет обновление значения
 {
     Unorderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -137,7 +126,6 @@ TEST(UnorderedMap, can_update_existing_key)
 }
 
 TEST(UnorderedMap, can_delete_existing_key)
-// Проверяет удаление элемента
 {
     Unorderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -150,7 +138,6 @@ TEST(UnorderedMap, can_delete_existing_key)
 }
 
 TEST(UnorderedMap, delete_nonexistent_key_throws_exception)
-// Проверяет, что при удалении несуществующего ключа выбрасывается исключение
 {
     Unorderedmap<string, int> map;
     map.Insert("apple", 5);
@@ -159,7 +146,6 @@ TEST(UnorderedMap, delete_nonexistent_key_throws_exception)
 }
 
 TEST(UnorderedMap, operator_brackets_creates_new_element)
-// Проверяет, что оператор [] создаёт новый элемент
 {
     Unorderedmap<string, int> map;
     map["newkey"] = 42;
@@ -170,7 +156,6 @@ TEST(UnorderedMap, operator_brackets_creates_new_element)
 }
 
 TEST(UnorderedMap, can_get_size)
-// Проверяет корректность подсчёта количества элементов
 {
     Unorderedmap<string, int> map;
     EXPECT_EQ(0, map.Count());
@@ -183,7 +168,6 @@ TEST(UnorderedMap, can_get_size)
 //BINARYTREE
 
 TEST(BinaryTree, can_insert_and_find_element)
-// Проверяет вставку и поиск элемента
 {
     Binarytree<string, int> tree;
     tree.Insert("apple", 5);
@@ -194,7 +178,6 @@ TEST(BinaryTree, can_insert_and_find_element)
 }
 
 TEST(BinaryTree, find_returns_nullptr_for_nonexistent_key)
-// Проверяет поиск несуществующего ключа
 {
     Binarytree<string, int> tree;
     tree.Insert("apple", 5);
@@ -204,7 +187,6 @@ TEST(BinaryTree, find_returns_nullptr_for_nonexistent_key)
 }
 
 TEST(BinaryTree, can_update_existing_key)
-// Проверяет обновление значения
 {
     Binarytree<string, int> tree;
     tree.Insert("apple", 5);
@@ -216,7 +198,6 @@ TEST(BinaryTree, can_update_existing_key)
 }
 
 TEST(BinaryTree, can_delete_leaf_node)
-// Проверяет удаление листового узла
 {
     Binarytree<string, int> tree;
     tree.Insert("banana", 3);
@@ -229,7 +210,6 @@ TEST(BinaryTree, can_delete_leaf_node)
 }
 
 TEST(BinaryTree, can_delete_node_with_two_children)
-// Проверяет удаление узла с двумя детьми
 {
     Binarytree<int, int> tree;
     tree.Insert(50, 50);
@@ -245,7 +225,6 @@ TEST(BinaryTree, can_delete_node_with_two_children)
 }
 
 TEST(BinaryTree, operator_brackets_creates_new_element)
-// Проверяет, что оператор [] создаёт новый элемент
 {
     Binarytree<string, int> tree;
     tree["newkey"] = 42;
@@ -256,7 +235,6 @@ TEST(BinaryTree, operator_brackets_creates_new_element)
 }
 
 TEST(BinaryTree, can_get_size)
-// Проверяет корректность подсчёта количества элементов
 {
     Binarytree<string, int> tree;
     EXPECT_EQ(0, tree.Count());
@@ -267,7 +245,6 @@ TEST(BinaryTree, can_get_size)
 }
 
 TEST(BinaryTree, can_clear_tree)
-// Проверяет очистку дерева
 {
     Binarytree<string, int> tree;
     tree.Insert("apple", 5);
@@ -281,7 +258,6 @@ TEST(BinaryTree, can_clear_tree)
 //CHAINHASHTABLE
 
 TEST(ChainHashTable, can_insert_and_find_element)
-// Проверяет вставку и поиск элемента
 {
     ChainHashTable<string, int> ht;
     ht.Insert("apple", 5);
@@ -292,7 +268,6 @@ TEST(ChainHashTable, can_insert_and_find_element)
 }
 
 TEST(ChainHashTable, find_returns_nullptr_for_nonexistent_key)
-// Проверяет поиск несуществующего ключа
 {
     ChainHashTable<string, int> ht;
     ht.Insert("apple", 5);
@@ -302,7 +277,6 @@ TEST(ChainHashTable, find_returns_nullptr_for_nonexistent_key)
 }
 
 TEST(ChainHashTable, can_update_existing_key)
-// Проверяет обновление значения
 {
     ChainHashTable<string, int> ht;
     ht.Insert("apple", 5);
@@ -314,7 +288,6 @@ TEST(ChainHashTable, can_update_existing_key)
 }
 
 TEST(ChainHashTable, can_delete_existing_key)
-// Проверяет удаление элемента
 {
     ChainHashTable<string, int> ht;
     ht.Insert("apple", 5);
@@ -327,7 +300,6 @@ TEST(ChainHashTable, can_delete_existing_key)
 }
 
 TEST(ChainHashTable, delete_nonexistent_key_throws_exception)
-// Проверяет, что при удалении несуществующего ключа выбрасывается исключение
 {
     ChainHashTable<string, int> ht;
     ht.Insert("apple", 5);
@@ -336,7 +308,6 @@ TEST(ChainHashTable, delete_nonexistent_key_throws_exception)
 }
 
 TEST(ChainHashTable, operator_brackets_creates_new_element)
-// Проверяет, что оператор [] создаёт новый элемент
 {
     ChainHashTable<string, int> ht;
     ht["newkey"] = 42;
@@ -347,7 +318,6 @@ TEST(ChainHashTable, operator_brackets_creates_new_element)
 }
 
 TEST(ChainHashTable, can_get_size)
-// Проверяет корректность подсчёта количества элементов
 {
     ChainHashTable<string, int> ht;
     EXPECT_EQ(0, ht.count());
@@ -358,7 +328,6 @@ TEST(ChainHashTable, can_get_size)
 }
 
 TEST(ChainHashTable, can_clear_table)
-// Проверяет очистку таблицы
 {
     ChainHashTable<string, int> ht;
     ht.Insert("apple", 5);
