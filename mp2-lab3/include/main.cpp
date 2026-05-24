@@ -1,33 +1,36 @@
-#include "art.h"
 #include "trees.h"
+#include "map.h"
+#include <exception>
 #include <iostream>
-#include <stdexcept>
+#include <string>
+
 
 using namespace std;
 
 int main() {
-
-    Binarytree<string, TPolinom> tree;
-    tree.Insert("B", TPolinom("2x2y0z0"));
-    tree.Insert("A", TPolinom("3x0y1z0"));
-    tree.Insert("C", TPolinom("1x1y1z0"));
-    TPolinom* p = tree.Find("A");  
-    tree["D"] = TPolinom(5.0);
+    Tree23<int, string> tree;
+    tree.Insert(10, "ten");
+    tree.Insert(5, "five");
+    tree.Insert(15, "fifteen");
+    tree.Insert(3, "three");
+    tree.Insert(7, "seven");
+    tree.Insert(12, "twelve");
+    tree.Insert(18, "eighteen");
+    cout << "\nTree contents:" << endl;
     tree.Print();
-    vector<string> keys = tree.keys();
-
-
-        string vurazhenie = "x*y+z+z";
-        Binarytree<string, TPolinom> peremen;
-
-        peremen.Insert("x", TPolinom("1x1y1z0"));
-        peremen.Insert("y", TPolinom("3x0y0z0"));
-        peremen.Insert("z", TPolinom("9x2y1z0+2x1y1z0"));
-        TPolinom resul = execute(vurazhenie, peremen);
-        cout << "vurazhenieession: " << vurazhenie << endl;
-        cout << "Res" << resul << endl;
-        cout << "V tochke x=1, y=2, z=3: " << resul.Calculate_At(1, 2, 3) << endl;
-    
+    cout << "\nFind 7: ";
+    string* val = tree.Find(7);
+    if (val) cout << *val << endl;
+    else cout << "Not found" << endl;
+    cout << "tree[15] = " << tree[15] << endl;
+    cout << "\ndel 5..." << endl;
+    tree.Delete(5);
+    cout << "after del:" << endl;
+    tree.Print();
+    cout << endl;
+    tree.Clear();
+    cout << "\nclear: ";
+    tree.Print();
 
     return 0;
 }
