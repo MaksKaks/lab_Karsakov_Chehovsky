@@ -2,6 +2,7 @@
 #include "map.h"
 #include "trees.h"
 #include "hashtable.h"
+#include "kucha.h"
 #include <string>
 
 using namespace std;
@@ -336,4 +337,221 @@ TEST(ChainHashTable, can_clear_table)
 
     EXPECT_EQ(0, ht.count());
     EXPECT_TRUE(ht.isempty());
+}
+
+//D-ÊÓ×À
+
+TEST(Heapmax, can_create_heap_with_default_children)
+{
+    Heapmax<int> heap;
+    EXPECT_TRUE(heap.isEmpty());
+    EXPECT_EQ(0, heap.getSize());
+}
+
+TEST(Heapmax, can_create_heap_with_specified_children)
+{
+    Heapmax<int> heap(3);
+    EXPECT_TRUE(heap.isEmpty());
+    EXPECT_EQ(0, heap.getSize());
+}
+
+TEST(Heapmax, throws_when_children_count_less_than_2)
+{
+    EXPECT_ANY_THROW(Heapmax<int> heap(1));
+}
+
+TEST(Heapmax, can_create_heap_from_vector)
+{
+    vector<int> source = { 1, 2, 3, 4, 5 };
+    Heapmax<int> heap(source);
+
+    EXPECT_EQ(5, heap.getSize());
+    EXPECT_FALSE(heap.isEmpty());
+}
+
+TEST(Heapmax, throws_when_creating_from_empty_vector)
+{
+    vector<int> empty;
+    EXPECT_ANY_THROW(Heapmax<int> heap(empty));
+}
+
+TEST(Heapmax, can_push_element)
+{
+    Heapmax<int> heap;
+    heap.push(10);
+
+    EXPECT_EQ(1, heap.getSize());
+    EXPECT_EQ(10, heap.Getmaxval());
+}
+
+TEST(Heapmax, push_maintains_heap_property_max_at_root)
+{
+    Heapmax<int> heap;
+    heap.push(10);
+    heap.push(20);
+    heap.push(5);
+    heap.push(30);
+
+    EXPECT_EQ(30, heap.Getmaxval());
+    EXPECT_EQ(4, heap.getSize());
+}
+
+TEST(Heapmax, can_pop_max_element)
+{
+    Heapmax<int> heap;
+    heap.push(10);
+    heap.push(20);
+    heap.push(5);
+
+    int maxVal = heap.popmax();
+
+    EXPECT_EQ(20, maxVal);
+    EXPECT_EQ(2, heap.getSize());
+}
+
+TEST(Heapmax, popmax_removes_max_and_maintains_heap_property)
+{
+    Heapmax<int> heap;
+    heap.push(10);
+    heap.push(30);
+    heap.push(20);
+    heap.push(5);
+    heap.push(25);
+
+    heap.popmax();
+
+    EXPECT_EQ(25, heap.Getmaxval());
+    EXPECT_EQ(4, heap.getSize());
+}
+
+TEST(Heapmax, popmax_throws_when_heap_empty)
+{
+    Heapmax<int> heap;
+    EXPECT_ANY_THROW(heap.popmax());
+}
+
+TEST(Heapmax, getmaxval_returns_max_without_removing)
+{
+    Heapmax<int> heap;
+    heap.push(10);
+    heap.push(30);
+    heap.push(20);
+
+    int maxVal = heap.Getmaxval();
+
+    EXPECT_EQ(30, maxVal);
+    EXPECT_EQ(3, heap.getSize());
+}
+
+TEST(Heapmax, getmaxval_throws_when_heap_empty)
+{
+    Heapmax<int> heap;
+    EXPECT_ANY_THROW(heap.Getmaxval());
+}
+
+TEST(Heapmax, can_check_if_heap_is_empty)
+{
+    Heapmax<int> heap;
+    EXPECT_TRUE(heap.isEmpty());
+
+    heap.push(10);
+    EXPECT_FALSE(heap.isEmpty());
+
+    heap.popmax();
+    EXPECT_TRUE(heap.isEmpty());
+}
+
+TEST(Heapmax, can_get_heap_size)
+{
+    Heapmax<int> heap;
+    EXPECT_EQ(0, heap.getSize());
+
+    heap.push(10);
+    EXPECT_EQ(1, heap.getSize());
+
+    heap.push(20);
+    EXPECT_EQ(2, heap.getSize());
+
+    heap.popmax();
+    EXPECT_EQ(1, heap.getSize());
+}
+
+TEST(Heapmax, can_clear_heap)
+{
+    Heapmax<int> heap;
+    heap.push(10);
+    heap.push(20);
+    heap.push(30);
+
+    heap.clear();
+
+    EXPECT_TRUE(heap.isEmpty());
+    EXPECT_EQ(0, heap.getSize());
+}
+
+TEST(Heapmax, works_with_different_data_types)
+{
+    Heapmax<double> doubleHeap;
+    doubleHeap.push(1.5);
+    doubleHeap.push(3.7);
+    doubleHeap.push(2.1);
+
+    EXPECT_EQ(3.7, doubleHeap.Getmaxval());
+
+    Heapmax<string> stringHeap;
+    stringHeap.push("apple");
+    stringHeap.push("banana");
+    stringHeap.push("cherry");
+
+    EXPECT_EQ("cherry", stringHeap.Getmaxval());
+}
+
+TEST(Heapmax, d_heap_property_with_3_children)
+{
+    Heapmax<int> heap(3);
+    heap.push(10);
+    heap.push(20);
+    heap.push(30);
+    heap.push(5);
+    heap.push(25);
+    heap.push(35);
+
+    EXPECT_EQ(35, heap.Getmaxval());
+    EXPECT_EQ(6, heap.getSize());
+
+    heap.popmax();
+    EXPECT_EQ(30, heap.Getmaxval());
+}
+
+TEST(Heapmax, heap_from_vector_preserves_max_at_root)
+{
+    vector<int> source = { 5, 3, 8, 1, 9, 2, 7 };
+    Heapmax<int> heap(source);
+
+    int maxFromVector = *max_element(source.begin(), source.end());
+    EXPECT_EQ(maxFromVector, heap.Getmaxval());
+}
+
+TEST(Heapmax, multiple_push_and_pop_sequence)
+{
+    Heapmax<int> heap;
+
+    heap.push(15);
+    heap.push(25);
+    heap.push(10);
+    heap.push(30);
+    heap.push(20);
+
+    EXPECT_EQ(30, heap.popmax()); 
+    EXPECT_EQ(25, heap.popmax()); 
+    EXPECT_EQ(20, heap.popmax()); 
+    EXPECT_EQ(15, heap.popmax()); 
+    EXPECT_EQ(10, heap.popmax()); 
+
+    EXPECT_TRUE(heap.isEmpty());
+}
+
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
