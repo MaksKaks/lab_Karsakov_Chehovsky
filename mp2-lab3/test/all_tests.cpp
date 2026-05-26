@@ -551,6 +551,259 @@ TEST(Heapmax, multiple_push_and_pop_sequence)
     EXPECT_TRUE(heap.isEmpty());
 }
 
+//ÀÂË-ÄÅÐÅÂÜß
+
+TEST(AVLTree, can_insert_and_find_element)
+{
+    AVLTree<string, int> tree;
+    tree.Insert("apple", 5);
+
+    int* value = tree.Find("apple");
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(5, *value);
+}
+
+TEST(AVLTree, find_returns_nullptr_for_nonexistent_key)
+{
+    AVLTree<string, int> tree;
+    tree.Insert("apple", 5);
+
+    int* value = tree.Find("banana");
+    EXPECT_EQ(nullptr, value);
+}
+
+TEST(AVLTree, can_update_existing_key)
+{
+    AVLTree<string, int> tree;
+    tree.Insert("apple", 5);
+    tree.Insert("apple", 10);
+
+    int* value = tree.Find("apple");
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(10, *value);
+}
+
+TEST(AVLTree, can_delete_leaf_node)
+{
+    AVLTree<string, int> tree;
+    tree.Insert("banana", 3);
+    tree.Insert("apple", 5);
+    tree.Insert("cherry", 7);
+    tree.Delete("apple");
+
+    EXPECT_EQ(2, tree.Count());
+    EXPECT_EQ(nullptr, tree.Find("apple"));
+    EXPECT_NE(nullptr, tree.Find("banana"));
+    EXPECT_NE(nullptr, tree.Find("cherry"));
+}
+
+TEST(AVLTree, can_delete_node_with_one_child)
+{
+    AVLTree<int, int> tree;
+    tree.Insert(50, 50);
+    tree.Insert(30, 30);
+    tree.Insert(70, 70);
+    tree.Insert(20, 20);
+
+    tree.Delete(30);
+
+    EXPECT_EQ(3, tree.Count());
+    EXPECT_EQ(nullptr, tree.Find(30));
+    EXPECT_NE(nullptr, tree.Find(20));
+    EXPECT_NE(nullptr, tree.Find(50));
+    EXPECT_NE(nullptr, tree.Find(70));
+}
+
+TEST(AVLTree, can_delete_node_with_two_children)
+{
+    AVLTree<int, int> tree;
+    tree.Insert(50, 50);
+    tree.Insert(30, 30);
+    tree.Insert(70, 70);
+    tree.Insert(20, 20);
+    tree.Insert(40, 40);
+    tree.Insert(60, 60);
+    tree.Insert(80, 80);
+
+    tree.Delete(50);
+
+    EXPECT_EQ(6, tree.Count());
+    EXPECT_EQ(nullptr, tree.Find(50));
+}
+
+TEST(AVLTree, keys_are_returned_in_sorted_order)
+{
+    AVLTree<string, int> tree;
+    tree.Insert("banana", 3);
+    tree.Insert("apple", 5);
+    tree.Insert("cherry", 7);
+    tree.Insert("date", 2);
+
+    vector<string> keys = tree.keys();
+    ASSERT_EQ(4, keys.size());
+    EXPECT_EQ("apple", keys[0]);
+    EXPECT_EQ("banana", keys[1]);
+    EXPECT_EQ("cherry", keys[2]);
+    EXPECT_EQ("date", keys[3]);
+}
+
+TEST(AVLTree, operator_brackets_creates_new_element)
+{
+    AVLTree<string, int> tree;
+    tree["newkey"] = 42;
+
+    int* value = tree.Find("newkey");
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(42, *value);
+}
+
+TEST(AVLTree, operator_brackets_updates_existing_element)
+{
+    AVLTree<string, int> tree;
+    tree["test"] = 10;
+    tree["test"] = 20;
+
+    EXPECT_EQ(20, tree["test"]);
+    EXPECT_EQ(1, tree.Count());
+}
+
+TEST(AVLTree, can_get_correct_size)
+{
+    AVLTree<string, int> tree;
+    EXPECT_EQ(0, tree.Count());
+
+    tree.Insert("a", 1);
+    EXPECT_EQ(1, tree.Count());
+
+    tree.Insert("b", 2);
+    tree.Insert("c", 3);
+    EXPECT_EQ(3, tree.Count());
+
+    tree.Delete("b");
+    EXPECT_EQ(2, tree.Count());
+}
+
+TEST(AVLTree, isempty_works_correctly)
+{
+    AVLTree<string, int> tree;
+    EXPECT_TRUE(tree.isempty());
+
+    tree.Insert("a", 1);
+    EXPECT_FALSE(tree.isempty());
+
+    tree.Clear();
+    EXPECT_TRUE(tree.isempty());
+}
+
+TEST(AVLTree, can_clear_tree)
+{
+    AVLTree<string, int> tree;
+    tree.Insert("apple", 5);
+    tree.Insert("banana", 3);
+    tree.Insert("cherry", 7);
+    tree.Clear();
+
+    EXPECT_EQ(0, tree.Count());
+    EXPECT_TRUE(tree.isempty());
+    EXPECT_EQ(nullptr, tree.Find("apple"));
+}
+
+TEST(AVLTree, avl_stays_balanced_after_sorted_insertions)
+{
+    AVLTree<int, int> tree;
+
+    for (int i = 1; i <= 100; i++) {
+        tree.Insert(i, i);
+    }
+
+    for (int i = 1; i <= 100; i++) {
+        int* value = tree.Find(i);
+        ASSERT_NE(nullptr, value);
+        EXPECT_EQ(i, *value);
+    }
+
+    EXPECT_EQ(100, tree.Count());
+}
+
+TEST(AVLTree, avl_stays_balanced_after_deletions)
+{
+    AVLTree<int, int> tree;
+
+    for (int i = 1; i <= 50; i++) {
+        tree.Insert(i, i);
+    }
+
+    for (int i = 10; i <= 40; i++) {
+        tree.Delete(i);
+    }
+
+    for (int i = 1; i <= 9; i++) {
+        EXPECT_NE(nullptr, tree.Find(i));
+    }
+    for (int i = 41; i <= 50; i++) {
+        EXPECT_NE(nullptr, tree.Find(i));
+    }
+    for (int i = 10; i <= 40; i++) {
+        EXPECT_EQ(nullptr, tree.Find(i));
+    }
+
+    EXPECT_EQ(19, tree.Count());
+}
+
+TEST(AVLTree, works_with_string_keys)
+{
+    AVLTree<string, string> tree;
+    tree.Insert("Russia", "Moscow");
+    tree.Insert("USA", "Washington");
+    tree.Insert("France", "Paris");
+    tree.Insert("Germany", "Berlin");
+
+    EXPECT_EQ("Moscow", *tree.Find("Russia"));
+    EXPECT_EQ("Paris", *tree.Find("France"));
+    EXPECT_EQ(4, tree.Count());
+}
+
+TEST(AVLTree, works_with_double_values)
+{
+    AVLTree<string, double> tree;
+    tree.Insert("pi", 3.14159);
+    tree.Insert("e", 2.71828);
+
+    EXPECT_DOUBLE_EQ(3.14159, *tree.Find("pi"));
+    EXPECT_DOUBLE_EQ(2.71828, *tree.Find("e"));
+}
+
+TEST(AVLTree, copy_values_correctly_after_update)
+{
+    AVLTree<int, string> tree;
+    tree.Insert(1, "one");
+    tree.Insert(2, "two");
+    tree.Insert(1, "ONE");
+
+    string* val = tree.Find(1);
+    ASSERT_NE(nullptr, val);
+    EXPECT_EQ("ONE", *val);
+    EXPECT_EQ(2, tree.Count());
+}
+
+TEST(AVLTree, handles_large_number_of_elements)
+{
+    AVLTree<int, int> tree;
+
+    for (int i = 0; i < 1000; i++) {
+        tree.Insert(i, i * 10);
+    }
+
+    EXPECT_EQ(1000, tree.Count());
+
+    for (int i = 0; i < 1000; i++) {
+        int* val = tree.Find(i);
+        ASSERT_NE(nullptr, val);
+        EXPECT_EQ(i * 10, *val);
+    }
+}
+
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
