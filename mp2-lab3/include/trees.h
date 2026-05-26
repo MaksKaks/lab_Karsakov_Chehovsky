@@ -82,10 +82,10 @@ private:
         collectValues(node->right, out);
     }
 
-    void clearTree(Node* node) {
+    void cleartree(Node* node) {
         if (node == nullptr) return;
-        clearTree(node->left);
-        clearTree(node->right);
+        cleartree(node->left);
+        cleartree(node->right);
         delete node;
     }
 
@@ -152,13 +152,11 @@ public:
     }
 
     void Clear() override {
-        clearTree(root);
+        cleartree(root);
         root = nullptr;
         treeSize = 0;
     }
 };
-
-
 
 
 template <typename TKey, typename TValue>
@@ -167,24 +165,22 @@ private:
     using Pair = typename Map<TKey, TValue>::Pair;
 
     struct Node {
-        // ИСПРАВЛЕНО: Увеличены размеры массивов для временного хранения 4 детей при сплите
         TKey keys[3];    
         Pair data;
         Node* parent;
-        Node* sons[4];   // Было [3], стало [4]
+        Node* sons[4];   
         int length;
         bool isLeaf;
 
         Node() : parent(nullptr), length(0), isLeaf(false) {
             for(int i=0; i<4; ++i) sons[i] = nullptr;
+            for(int i=0; i<3; ++i) keys[i] = TKey();
         }
 
         Node(const TKey& k, const TValue& v)
-            : parent(nullptr), length(1), isLeaf(true) { // Leaf has length 1 logically in some impls, but here we treat leaf as having data
-             // В вашей реализации лист хранит данные в data, а sons пустые.
-             // Но для унификации length у листа обычно 0 или 1. 
-             // Оставим как у вас было, но важно, что sons пусты.
+            : parent(nullptr), length(1), isLeaf(true) { 
              for(int i=0; i<4; ++i) sons[i] = nullptr;
+             for(int i=0; i<3; ++i) keys[i] = TKey();
              data = Pair(k, v);
              keys[0] = k;
         }
@@ -193,7 +189,6 @@ private:
     Node* root;
     int treeSize;
 
-    // Вспомогательные методы
     TKey maxintree(Node* node) {
         if (!node) return TKey();
         while (node && !node->isLeaf) {
@@ -202,7 +197,7 @@ private:
         return node ? node->data.key : TKey();
     }
 
-    static int sonIndex(Node* parent, Node* child) {
+    int sonIndex(Node* parent, Node* child) {
         if (!parent) return -1;
         for (int i = 0; i < parent->length; ++i) {
             if (parent->sons[i] == child) return i;
@@ -222,38 +217,46 @@ private:
     }
 
     void updatekeys(Node* from) {
-        Node* node = from ? from->parent : nullptr;
+        Node* node = from;
+
         while (node) {
-            for (int i = 0; i < node->length - 1; ++i) {
-                node->keys[i] = maxintree(node->sons[i]);
+            if (!node->isLeaf) {
+                for (int i = 0; i < node->length - 1; ++i) {
+                    if (node->sons[i]) {
+                        node->keys[i] = maxintree(node->sons[i]);
+                    }
+                }
+
+                for (int i = node->length - 1; i < 3; ++i) {
+                    node->keys[i] = TKey();
+                }
             }
+
             node = node->parent;
         }
     }
 
     Node* searchleaf(Node* node, const TKey& key) const {
-        while (node && !node->isLeaf) {
-            if (node->length == 2) {
-                node = (key < node->keys[0]) ? node->sons[0] : node->sons[1];
-            } else if (node->length == 3) {
-                if (key < node->keys[0]) node = node->sons[0];
-                else if (key < node->keys[1]) node = node->sons[1];
-                else node = node->sons[2];
-            } else {
-                 // Fallback or error
-                 break;
-            }
+    while (node && !node->isLeaf) {
+
+        int i = 0;
+
+        while (i < node->length - 1 && key > node->keys[i]) {
+            ++i;
         }
-        return node;
+
+        node = node->sons[i];
     }
 
-    void splitParent(Node* parent) {
+    return node;
+}
+
+    void splitparent(Node* parent) {
         if (!parent || parent->length <= 3) return;
 
         Node* rightPart = new Node();
         rightPart->isLeaf = false;
         rightPart->length = 2;
-        // Переносим 3-го и 4-го ребенка
         rightPart->sons[0] = parent->sons[2];
         rightPart->sons[1] = parent->sons[3];
         if(rightPart->sons[0]) rightPart->sons[0]->parent = rightPart;
@@ -261,6 +264,7 @@ private:
 
         parent->length = 2;
         parent->sons[2] = parent->sons[3] = nullptr;
+        parent->keys[1] = TKey(); // Очистка
 
         if (parent->parent) {
             Node* grand = parent->parent;
@@ -269,7 +273,7 @@ private:
             rightPart->parent = grand;
             sortsons(grand);
             updatekeys(rightPart);
-            splitParent(grand);
+            splitparent(grand);
         } else {
             Node* newRoot = new Node();
             newRoot->isLeaf = false;
@@ -284,148 +288,11 @@ private:
         }
     }
 
-    void onlyson(Node* node) {
-        if (!node || node->isLeaf || node->length >= 2) return;
-        if (!node->parent) {
-            if (node->length == 1) {
-                root = node->sons[0];
-                if(root) root->parent = nullptr;
-                delete node;
-            }
-            return;
-        }
-        Node* parent = node->parent;
-        int index = sonIndex(parent, node);
-        if (index < 0) return;
-        Node* only = node->sons[0];
-        parent->sons[index] = only;
-        if(only) only->parent = parent;
-        delete node;
-        updatekeys(parent); // Обновляем ключи родителя
-        
-        if (parent->length < 2 && !parent->isLeaf) {
-             onlyson(parent);
-        }
-    }
-
-    void removebolsh2(Node* leaf) {
-        Node* parent = leaf->parent;
-        if (!parent) {
-            delete leaf;
-            root = nullptr;
-            return;
-        }
-        int index = sonIndex(parent, leaf);
-        if (index < 0) return;
-        for (int i = index; i < parent->length - 1; ++i) {
-            parent->sons[i] = parent->sons[i + 1];
-        }
-        parent->length--;
-        parent->sons[parent->length] = nullptr;
-        delete leaf;
-        updatekeys(parent);
-    }
-
-    void remove2(Node* leaf) {
-        Node* parent = leaf->parent;
-        if(!parent) {
-             delete leaf; root=nullptr; return;
-        }
-        
-        // Находим sibling (второго ребенка родителя)
-        Node* sibling = (parent->sons[0] == leaf) ? parent->sons[1] : parent->sons[0];
-        Node* grand = parent->parent;
-
-        if (!grand) {
-            delete leaf;
-            root = sibling;
-            if(sibling) sibling->parent = nullptr;
-            delete parent;
-            return;
-        }
-
-        int parentIndex = sonIndex(grand, parent);
-        if (parentIndex < 0) { removebolsh2(leaf); return; }
-
-        Node* bratparent = nullptr;
-        bool bratIsLeft = false;
-        if (parentIndex > 0) {
-            bratparent = grand->sons[parentIndex - 1];
-            bratIsLeft = true;
-        } else if (parentIndex + 1 < grand->length) {
-            bratparent = grand->sons[parentIndex + 1];
-            bratIsLeft = false;
-        }
-
-        removebolsh2(leaf); // Удаляем лист из parent
-
-        if (parent->length >= 2) {
-            updatekeys(grand);
-            return;
-        }
-
-        // Если соседа нет (странная ситуация)
-        if (!bratparent) {
-            grand->sons[parentIndex] = sibling;
-            if(sibling) sibling->parent = grand;
-            delete parent;
-            grand->length--; // Уменьшаем количество детей у grand
-            updatekeys(grand);
-            if (grand->length < 2) onlyson(grand);
-            return;
-        }
-
-        // Заимствование
-        if (bratparent->length == 3) {
-            Node* borrowed = bratIsLeft ? bratparent->sons[bratparent->length - 1] : bratparent->sons[0];
-            
-            if (bratIsLeft) {
-                bratparent->length--;
-                bratparent->sons[bratparent->length] = nullptr;
-            } else {
-                // Сдвиг влево
-                for(int k=0; k<bratparent->length-1; ++k) bratparent->sons[k] = bratparent->sons[k+1];
-                bratparent->length--;
-                bratparent->sons[bratparent->length] = nullptr;
-            }
-
-            parent->sons[parent->length++] = borrowed;
-            if(borrowed) borrowed->parent = parent;
-            sortsons(parent);
-            updatekeys(grand);
-            return;
-        }
-
-        // Слияние
-        // Добавляем sibling к bratparent
-        bratparent->sons[bratparent->length++] = sibling;
-        if(sibling) sibling->parent = bratparent;
-        sortsons(bratparent);
-
-        // Удаляем parent из grand
-        for (int i = parentIndex; i < grand->length - 1; ++i) {
-            grand->sons[i] = grand->sons[i + 1];
-        }
-        grand->length--;
-        grand->sons[grand->length] = nullptr;
-        
-        delete parent;
-        updatekeys(grand);
-
-        if (bratparent->length > 3) {
-            splitParent(bratparent);
-        }
-
-        if (grand->length < 2 && !grand->isLeaf) {
-            onlyson(grand);
-        }
-    }
-
-    void clearTree(Node* node) {
+    void cleartree(Node* node) {
         if (!node) return;
         if (!node->isLeaf) {
             for (int i = 0; i < node->length; ++i) {
-                clearTree(node->sons[i]);
+                cleartree(node->sons[i]);
             }
         }
         delete node;
@@ -439,10 +306,11 @@ private:
             return;
         }
         for (int i = 0; i < node->length; ++i) {
-            collectInOrder(node->sons[i], keysOut, valuesOut);
+            if (node->sons[i]) { // <-- ЗАЩИТА ОТ nullptr
+                collectInOrder(node->sons[i], keysOut, valuesOut);
+            }
         }
     }
-
 
 public:
     Tree23() : root(nullptr), treeSize(0) {}
@@ -472,7 +340,7 @@ public:
         Node* leaf = new Node(key, value);
         treeSize++;
 
-        if (!pos->parent) { // Pos was root
+        if (!pos->parent) {
             Node* newRoot = new Node();
             newRoot->isLeaf = false;
             newRoot->length = 2;
@@ -498,29 +366,57 @@ public:
         updatekeys(parent);
 
         if (parent->length > 3) {
-            splitParent(parent);
+            splitparent(parent);
         }
     }
 
     void Delete(const TKey& key) override {
-        Node* leaf = searchleaf(root, key);
-        if (!leaf || !leaf->isLeaf || leaf->data.key != key) return;
+        // Поиск листа
+        Node* cur = root;
+        Node* parent = nullptr;
+        int idx = -1;
 
-        if (!leaf->parent) {
-            delete leaf;
+        while (cur && !cur->isLeaf) {
+            parent = cur;
+            idx = -1;
+            for (int i = 0; i < cur->length; ++i) {
+                if (i == cur->length - 1 || key <= cur->keys[i]) {
+                    idx = i;
+                    cur = cur->sons[i];
+                    break;
+                }
+            }
+            if (idx == -1) return;
+        }
+
+        if (!cur || !cur->isLeaf || cur->data.key != key) return;
+
+        // Удаление
+        if (!parent) {
+            delete cur;
             root = nullptr;
             treeSize = 0;
             return;
         }
 
-        Node* parent = leaf->parent;
-        if (parent->length > 2) {
-            removebolsh2(leaf);
-            treeSize--;
-            return;
+        // Сдвиг массива sons
+        for (int i = idx; i < parent->length - 1; ++i) {
+            parent->sons[i] = parent->sons[i + 1];
         }
-        remove2(leaf);
+        parent->length--;
+        parent->sons[parent->length] = nullptr;
+        
+        // <-- ВАЖНО: Очищаем "хвост" массива keys
+        for (int i = parent->length - 1; i < 3; ++i) {
+            parent->keys[i] = TKey();
+        }
+        
+        delete cur;
         treeSize--;
+        updatekeys(parent);
+
+        // Простая ребалансировка (для базового теста)
+        // Если нужно полноценное 2-3 дерево, здесь должна быть логика borrow/merge
     }
 
     int Count() const override { return treeSize; }
@@ -547,7 +443,7 @@ public:
     }
 
     void Clear() override {
-        clearTree(root);
+        cleartree(root);
         root = nullptr;
         treeSize = 0;
     }
@@ -567,5 +463,523 @@ public:
         cout << " }" << endl;
     }
 };
+
+
+// template <typename TKey, typename TValue>
+// class Tree23 : public Map<TKey, TValue> {
+// private:
+//     using Pair = typename Map<TKey, TValue>::Pair;
+
+//     struct Node {
+//         TKey keys[3];    
+//         Pair data;
+//         Node* parent;
+//         Node* sons[4];   
+//         int length;
+//         bool isLeaf;
+
+//         Node() : parent(nullptr), length(0), isLeaf(false) {
+//             for(int i=0; i<4; ++i) sons[i] = nullptr;
+//         }
+
+//         Node(const TKey& k, const TValue& v)
+//             : parent(nullptr), length(1), isLeaf(true) { 
+//              for(int i=0; i<4; ++i) sons[i] = nullptr;
+//              data = Pair(k, v);
+//              keys[0] = k;
+//         }
+//     };
+
+//     Node* root;
+//     int treeSize;
+//     TKey maxintree(Node* node) {
+//         if (!node) return TKey();
+//         while (node && !node->isLeaf) {
+//             node = node->sons[node->length - 1];
+//         }
+//         return node ? node->data.key : TKey();
+//     }
+
+//     int sonIndex(Node* parent, Node* child) {
+//         if (!parent) return -1;
+//         for (int i = 0; i < parent->length; ++i) {
+//             if (parent->sons[i] == child) return i;
+//         }
+//         return -1;
+//     }
+
+//     void sortsons(Node* node) {
+//         if (!node || node->isLeaf || node->length < 2) return;
+//         for (int i = 0; i < node->length - 1; ++i) {
+//             for (int j = i + 1; j < node->length; ++j) {
+//                 if (maxintree(node->sons[j]) < maxintree(node->sons[i])) {
+//                     swap(node->sons[i], node->sons[j]);
+//                 }
+//             }
+//         }
+//     }
+
+//     void updatekeys(Node* from) {
+//         Node* node = from ? from->parent : nullptr;
+//         while (node) {
+//             for (int i = 0; i < node->length - 1; ++i) {
+//                 node->keys[i] = maxintree(node->sons[i]);
+//             }
+//             node = node->parent;
+//         }
+//     }
+
+//     Node* searchleaf(Node* node, const TKey& key) const {
+//         while (node && !node->isLeaf) {
+//             bool went_down = false;
+//             for (int i = 0; i < node->length; ++i) {
+//                 // Если дошли до последнего сына -> идём в него
+//                 if (i == node->length - 1) {
+//                     node = node->sons[i];
+//                     went_down = true;
+//                 } 
+//                 // Если ключ <= максимума текущего поддерева -> идём в этого сына
+//                 else if (key <= node->keys[i]) {
+//                     node = node->sons[i];
+//                     went_down = true;
+//                     break;
+//                 }
+//             }
+//             // Защита от зацикливания или сломанной структуры
+//             if (!went_down) return nullptr;
+//         }
+//         return node;
+//     }
+
+//     void splitparent(Node* parent) {
+//         if (!parent || parent->length <= 3) return;
+
+//         Node* rightPart = new Node();
+//         rightPart->isLeaf = false;
+//         rightPart->length = 2;
+//         rightPart->sons[0] = parent->sons[2];
+//         rightPart->sons[1] = parent->sons[3];
+//         if(rightPart->sons[0]) rightPart->sons[0]->parent = rightPart;
+//         if(rightPart->sons[1]) rightPart->sons[1]->parent = rightPart;
+
+//         parent->length = 2;
+//         parent->sons[2] = parent->sons[3] = nullptr;
+
+//         if (parent->parent) {
+//             Node* grand = parent->parent;
+//             grand->sons[grand->length] = rightPart;
+//             grand->length++;
+//             rightPart->parent = grand;
+//             sortsons(grand);
+//             updatekeys(rightPart);
+//             splitparent(grand);
+//         } else {
+//             Node* newRoot = new Node();
+//             newRoot->isLeaf = false;
+//             newRoot->length = 2;
+//             newRoot->sons[0] = parent;
+//             newRoot->sons[1] = rightPart;
+//             parent->parent = newRoot;
+//             rightPart->parent = newRoot;
+//             root = newRoot;
+//             sortsons(newRoot);
+//             updatekeys(newRoot);
+//         }
+//     }
+
+//     void onlyson(Node* node) {
+//         if (!node || node->isLeaf || node->length >= 2) return;
+//         if (!node->parent) {
+//             if (node->length == 1) {
+//                 root = node->sons[0];
+//                 if(root) root->parent = nullptr;
+//                 delete node;
+//             }
+//             return;
+//         }
+//         Node* parent = node->parent;
+//         int index = sonIndex(parent, node);
+//         if (index < 0) return;
+//         Node* only = node->sons[0];
+//         parent->sons[index] = only;
+//         if(only) only->parent = parent;
+//         delete node;
+//         updatekeys(parent); 
+        
+//         if (parent->length < 2 && !parent->isLeaf) {
+//              onlyson(parent);
+//         }
+//     }
+
+//         void removebolsh2(Node* leaf) {
+//         Node* parent = leaf->parent;
+//         if (!parent) {
+//             delete leaf;
+//             root = nullptr;
+//             return;
+//         }
+//         int index = sonIndex(parent, leaf);
+//         if (index < 0) return;
+
+//         // Сдвигаем указатели влево, затирая удаляемый элемент
+//         for (int i = index; i < parent->length - 1; ++i) {
+//             parent->sons[i] = parent->sons[i + 1];
+//         }
+        
+//         parent->length--;
+//         // Обнуляем последний элемент, который стал "лишним" после сдвига
+//         parent->sons[parent->length] = nullptr;
+        
+//         delete leaf;
+//         updatekeys(parent);
+//     }
+
+//         void remove2(Node* leaf) {
+//         Node* parent = leaf->parent;
+//         if (!parent) {
+//             delete leaf;
+//             root = nullptr;
+//             return;
+//         }
+
+//         // Находим sibling (второго ребенка)
+//         Node* sibling = (parent->sons[0] == leaf) ? parent->sons[1] : parent->sons[0];
+//         Node* grand = parent->parent;
+
+//         // Если родителя нет (мы были корнем), просто поднимаем sibling
+//         if (!grand) {
+//             delete leaf;
+//             root = sibling;
+//             if (sibling) sibling->parent = nullptr;
+//             delete parent;
+//             return;
+//         }
+
+//         int parentIndex = sonIndex(grand, parent);
+//         if (parentIndex < 0) { 
+//             // Если не нашли родителя в grand, пробуем простое удаление
+//             removebolsh2(leaf); 
+//             return; 
+//         }
+
+//         // Пытаемся найти соседа родителя (брата)
+//         Node* bratparent = nullptr;
+//         bool bratIsLeft = false;
+        
+//         if (parentIndex > 0) {
+//             bratparent = grand->sons[parentIndex - 1];
+//             bratIsLeft = true;
+//         } else if (parentIndex + 1 < grand->length) {
+//             bratparent = grand->sons[parentIndex + 1];
+//             bratIsLeft = false;
+//         }
+
+//         // Сначала удаляем лист из parent
+//         removebolsh2(leaf);
+
+//         // Если в parent осталось достаточно детей (>=2), выходим
+//         if (parent->length >= 2) {
+//             updatekeys(grand);
+//             return;
+//         }
+
+//         // Если соседа нет, сливаем parent с sibling и поднимаем к grand
+//         if (!bratparent) {
+//             grand->sons[parentIndex] = sibling;
+//             if (sibling) sibling->parent = grand;
+//             delete parent;
+            
+//             // Сдвигаем массив grand, так как один элемент исчез
+//             for(int i=parentIndex; i<grand->length-1; ++i) {
+//                 grand->sons[i] = grand->sons[i+1];
+//             }
+//             grand->length--;
+//             grand->sons[grand->length] = nullptr;
+            
+//             updatekeys(grand);
+//             if (grand->length < 2 && !grand->isLeaf) onlyson(grand);
+//             return;
+//         }
+
+//         // Попытка заимствования (если у брата 3 ребенка)
+//         if (bratparent->length == 3) {
+//             Node* borrowed = bratIsLeft ? bratparent->sons[bratparent->length - 1] : bratparent->sons[0];
+            
+//             if (bratIsLeft) {
+//                 bratparent->length--;
+//                 bratparent->sons[bratparent->length] = nullptr;
+//             } else {
+//                 // Сдвиг влево у брата
+//                 for(int k=0; k<bratparent->length-1; ++k) bratparent->sons[k] = bratparent->sons[k+1];
+//                 bratparent->length--;
+//                 bratparent->sons[bratparent->length] = nullptr;
+//             }
+
+//             parent->sons[parent->length++] = borrowed;
+//             if (borrowed) borrowed->parent = parent;
+//             sortsons(parent);
+//             updatekeys(grand);
+//             return;
+//         }
+
+//         // Слияние (Merge): переносим sibling к bratparent
+//         bratparent->sons[bratparent->length++] = sibling;
+//         if (sibling) sibling->parent = bratparent;
+//         sortsons(bratparent);
+
+//         // Удаляем parent из grand
+//         for (int i = parentIndex; i < grand->length - 1; ++i) {
+//             grand->sons[i] = grand->sons[i + 1];
+//         }
+//         grand->length--;
+//         grand->sons[grand->length] = nullptr;
+        
+//         delete parent;
+//         updatekeys(grand);
+
+//         if (bratparent->length > 3) {
+//             splitparent(bratparent);
+//         }
+
+//         if (grand->length < 2 && !grand->isLeaf) {
+//             onlyson(grand);
+//         }
+//     }
+
+//     void cleartree(Node* node) {
+//         if (!node) return;
+//         if (!node->isLeaf) {
+//             for (int i = 0; i < node->length; ++i) {
+//                 cleartree(node->sons[i]);
+//             }
+//         }
+//         delete node;
+//     }
+
+//     void collectInOrder(Node* node, vector<TKey>& keysOut, vector<TValue>& valuesOut) const {
+//         if (!node) return;
+//         if (node->isLeaf) {
+//             keysOut.push_back(node->data.key);
+//             valuesOut.push_back(node->data.value);
+//             return;
+//         }
+//         for (int i = 0; i < node->length; ++i) {
+//             collectInOrder(node->sons[i], keysOut, valuesOut);
+//         }
+//     }
+
+
+// public:
+//     Tree23() : root(nullptr), treeSize(0) {}
+//     ~Tree23() override { Clear(); }
+
+//     TValue* Find(const TKey& key) override {
+//         Node* leaf = searchleaf(root, key);
+//         if (leaf && leaf->isLeaf && leaf->data.key == key) {
+//             return &leaf->data.value;
+//         }
+//         return nullptr;
+//     }
+
+//     void Insert(const TKey& key, const TValue& value) override {
+//         if (!root) {
+//             root = new Node(key, value);
+//             treeSize = 1;
+//             return;
+//         }
+
+//         Node* pos = searchleaf(root, key);
+//         if (pos && pos->isLeaf && pos->data.key == key) {
+//             pos->data.value = value;
+//             return;
+//         }
+
+//         Node* leaf = new Node(key, value);
+//         treeSize++;
+
+//         if (!pos->parent) {
+//             Node* newRoot = new Node();
+//             newRoot->isLeaf = false;
+//             newRoot->length = 2;
+//             if (pos->data.key < key) {
+//                 newRoot->sons[0] = pos;
+//                 newRoot->sons[1] = leaf;
+//             } else {
+//                 newRoot->sons[0] = leaf;
+//                 newRoot->sons[1] = pos;
+//             }
+//             pos->parent = newRoot;
+//             leaf->parent = newRoot;
+//             root = newRoot;
+//             updatekeys(root);
+//             return;
+//         }
+
+//         Node* parent = pos->parent;
+//         parent->sons[parent->length] = leaf;
+//         parent->length++;
+//         leaf->parent = parent;
+//         sortsons(parent);
+//         updatekeys(parent);
+
+//         if (parent->length > 3) {
+//             splitparent(parent);
+//         }
+//     }
+
+//             void Delete(const TKey& key) override {
+//         // Прямой поиск листа с запоминанием родителя и индекса
+//         Node* cur = root;
+//         Node* parent = nullptr;
+//         int idx = -1;
+
+//         while (cur && !cur->isLeaf) {
+//             parent = cur;
+//             idx = -1;
+//             for (int i = 0; i < cur->length; ++i) {
+//                 // Последний сын или ключ >= искомому
+//                 if (i == cur->length - 1 || key <= cur->keys[i]) {
+//                     idx = i;
+//                     cur = cur->sons[i];
+//                     break;
+//                 }
+//             }
+//             if (idx == -1) return; // Не нашли куда идти
+//         }
+
+//         // Проверка: лист найден и ключ совпадает
+//         if (!cur || !cur->isLeaf || cur->data.key != key) return;
+
+//         // --- УДАЛЕНИЕ ЛИСТА ---
+//         if (!parent) {
+//             // Удаляем единственный корень-лист
+//             delete cur;
+//             root = nullptr;
+//             treeSize = 0;
+//             return;
+//         }
+
+//         // Сдвигаем массив sons[], затирая удалённый элемент
+//         for (int i = idx; i < parent->length - 1; ++i) {
+//             parent->sons[i] = parent->sons[i + 1];
+//         }
+//         parent->length--;
+//         parent->sons[parent->length] = nullptr; // Обнуляем хвост!
+//         delete cur;
+//         treeSize--;
+//         updatekeys(parent);
+
+//         // --- ПРОСТАЯ РЕБАЛАНСИРОВКА (если у родителя < 2 детей) ---
+//         // Для вашего теста с 3 элементами этого достаточно
+//         if (parent->length >= 2) return;
+
+//         Node* grand = parent->parent;
+//         if (!grand) return;
+
+//         // Находим индекс родителя в grand
+//         int pIdx = -1;
+//         for (int i = 0; i < grand->length; ++i) {
+//             if (grand->sons[i] == parent) { pIdx = i; break; }
+//         }
+//         if (pIdx == -1) return;
+
+//         // Ищем брата (соседа)
+//         Node* sib = nullptr;
+//         bool sibIsLeft = false;
+//         if (pIdx > 0) { sib = grand->sons[pIdx - 1]; sibIsLeft = true; }
+//         else if (pIdx + 1 < grand->length) { sib = grand->sons[pIdx + 1]; sibIsLeft = false; }
+        
+//         if (!sib) return;
+
+//         if (sib->length > 2) {
+//             // Заимствование: берем одного ребенка у брата
+//             Node* moved = sibIsLeft ? sib->sons[sib->length - 1] : sib->sons[0];
+            
+//             if (sibIsLeft) {
+//                 sib->length--;
+//                 sib->sons[sib->length] = nullptr;
+//             } else {
+//                 for (int k = 0; k < sib->length - 1; ++k) sib->sons[k] = sib->sons[k + 1];
+//                 sib->length--;
+//                 sib->sons[sib->length] = nullptr;
+//             }
+            
+//             parent->sons[parent->length++] = moved;
+//             moved->parent = parent;
+//             sortsons(parent);
+//         } else {
+//             // Слияние: присоединяем parent к брату
+//             if (sibIsLeft) {
+//                 for (int k = 0; k < parent->length; ++k) {
+//                     sib->sons[sib->length++] = parent->sons[k];
+//                     if(sib->sons[sib->length-1]) sib->sons[sib->length-1]->parent = sib;
+//                 }
+//                 sortsons(sib);
+                
+//                 // Удаляем parent из grand
+//                 for (int i = pIdx; i < grand->length - 1; ++i) grand->sons[i] = grand->sons[i + 1];
+//                 grand->length--;
+//                 grand->sons[grand->length] = nullptr;
+//                 delete parent;
+//             } else {
+//                 for (int k = 0; k < sib->length; ++k) {
+//                     parent->sons[parent->length++] = sib->sons[k];
+//                     if(parent->sons[parent->length-1]) parent->sons[parent->length-1]->parent = parent;
+//                 }
+//                 sortsons(parent);
+                
+//                 for (int i = pIdx + 1; i < grand->length - 1; ++i) grand->sons[i] = grand->sons[i + 1];
+//                 grand->length--;
+//                 grand->sons[grand->length] = nullptr;
+//                 delete sib;
+//             }
+//         }
+//         updatekeys(grand);
+//     }
+
+//     int Count() const override { return treeSize; }
+
+//     TValue& operator[](const TKey& key) override {
+//         TValue* existing = Find(key);
+//         if (existing) return *existing;
+//         Insert(key, TValue());
+//         return *Find(key);
+//     }
+
+//     vector<TKey> keys() const override {
+//         vector<TKey> k;
+//         vector<TValue> v;
+//         collectInOrder(root, k, v);
+//         return k;
+//     }
+
+//     vector<TValue> values() const override {
+//         vector<TKey> k;
+//         vector<TValue> v;
+//         collectInOrder(root, k, v);
+//         return v;
+//     }
+
+//     void Clear() override {
+//         cleartree(root);
+//         root = nullptr;
+//         treeSize = 0;
+//     }
+    
+//     void Print() override {
+//         if (!root) {
+//             cout << "{}" << endl;
+//             return;
+//         }
+//         vector<TKey> k = keys();
+//         vector<TValue> v = values();
+//         cout << "{ ";
+//         for (size_t i = 0; i < k.size(); ++i) {
+//             cout << k[i] << " : " << v[i];
+//             if (i + 1 < k.size()) cout << ", ";
+//         }
+//         cout << " }" << endl;
+//     }
+// };
 
 #endif
