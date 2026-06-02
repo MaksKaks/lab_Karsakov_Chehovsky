@@ -30,9 +30,7 @@ private:
         int sum = 0;
         for (char ch : key) sum += ch;
         return sum % Size;}
-    
-    double percent() const {
-        return (double)elcount / Size;}
+
     void ReHash() {
         if (indexprostchislo >= 24) return;  
         indexprostchislo++;
@@ -64,8 +62,7 @@ public:
         Clear();
         delete[] buckets;}
     
-    
-    TValue* Find(const TKey& key) override {
+        TValue* Find(const TKey& key) override {
         int index = hash(key);
         Node* current = buckets[index];
         while (current != nullptr) {
@@ -74,7 +71,7 @@ public:
             current = current->next;}
         return nullptr;}
     void Insert(const TKey& key, const TValue& value) override {
-        if (percent() > Limit && indexprostchislo < 24) {
+        if ((double)elcount / Size; > Limit && indexprostchislo < 24) {
             ReHash();}
         int index = hash(key);
         Node* current = buckets[index];

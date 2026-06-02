@@ -307,6 +307,34 @@ private:
         }
     }
 
+    void printTree(Node* node, int level = 0) const {
+    if (!node) return;
+
+    for (int i = 0; i < level; ++i)
+        cout << "    ";
+
+    if (node->isLeaf) {
+        cout << "[Leaf: " << node->data.key
+             << " -> " << node->data.value << "]\n";
+    }
+    else {
+        cout << "[Internal ";
+
+        cout << "keys: ";
+        for (int i = 0; i < node->length - 1; ++i) {
+            cout << node->keys[i];
+            if (i + 1 < node->length - 1)
+                cout << ", ";
+        }
+
+        cout << "]\n";
+
+        for (int i = 0; i < node->length; ++i) {
+            printTree(node->sons[i], level + 1);
+        }
+    }
+}
+
 public:
     Tree23() : root(nullptr), treeSize(0) {}
     ~Tree23() override { Clear(); }
@@ -434,18 +462,12 @@ public:
     }
     
     void Print() override {
-        if (!root) {
-            cout << "{}" << endl;
-            return;
-        }
-        vector<TKey> k = keys();
-        vector<TValue> v = values();
-        cout << "{ ";
-        for (size_t i = 0; i < k.size(); ++i) {
-            cout << k[i] << " : " << v[i];
-            if (i + 1 < k.size()) cout << ", ";
-        }
-        cout << " }" << endl;
+    if (!root) {
+        cout << "<empty tree>\n";
+        return;
     }
+
+    printTree(root);
+}
 };
 #endif
